@@ -161,7 +161,7 @@ Examples
     
     real	0m24.850s
     user	0m47.635s
-    sys	0m56.156s
+    sys	    0m56.156s
     [wangdayong@TEST w-snmpwalk]$
     [wangdayong@TEST w-snmpwalk]$ ls -l
     total 72
@@ -195,6 +195,36 @@ Examples
     [wangdayong@TEST w-snmpwalk]$
     [wangdayong@TEST w-snmpwalk]$ cat snmp/172.17.129.68/ifDescr.9
     2015-11-29 22:56:06, GigabitEthernet1/0/9
+    [wangdayong@TEST w-snmpwalk]$
+    [wangdayong@TEST w-snmpwalk]$
+
+
+    [wangdayong@TEST w-snmpwalk]$
+    [wangdayong@TEST w-snmpwalk]$ rm -f snmp/172.17.129.68/ifDescr.*
+    [wangdayong@TEST w-snmpwalk]$
+    [wangdayong@TEST w-snmpwalk]$ ls -l snmp/172.17.129.68/ifDescr*
+    ls: cannot access snmp/172.17.129.68/ifDescr*: No such file or directory
+    [wangdayong@TEST w-snmpwalk]$
+    [wangdayong@TEST w-snmpwalk]$ time ./w-snmpwalk.py --comm xxxx --ipfile ip --datadir ./snmp --oid ifDescr --silent --singlefile --ip 172.17.129.68
+    
+    real	0m0.370s
+    user	0m0.055s
+    sys	    0m0.013s
+    [wangdayong@TEST w-snmpwalk]$
+    [wangdayong@TEST w-snmpwalk]$ ls -l snmp/172.17.129.68/ifDescr*
+    -rw-rw-r-- 1 wangdayong wangdayong 2423 Nov 29 23:10 snmp/172.17.129.68/ifDescr
+    [wangdayong@TEST w-snmpwalk]$
+    [wangdayong@TEST w-snmpwalk]$ cat snmp/172.17.129.68/ifDescr |tail
+    2015-11-29 23:10:27, GigabitEthernet1/0/48
+    2015-11-29 23:10:27, GigabitEthernet1/0/49
+    2015-11-29 23:10:27, GigabitEthernet1/0/50
+    2015-11-29 23:10:27, M-GigabitEthernet0/0/0
+    2015-11-29 23:10:27, NULL0
+    2015-11-29 23:10:27, Ten-GigabitEthernet1/0/51
+    2015-11-29 23:10:27, Ten-GigabitEthernet1/0/52
+    2015-11-29 23:10:27, Vlan-interface1
+    2015-11-29 23:10:27, Vlan-interface100
+    2015-11-29 23:10:27, Bridge-Aggregation1
     [wangdayong@TEST w-snmpwalk]$
     [wangdayong@TEST w-snmpwalk]$
 
