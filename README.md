@@ -199,4 +199,3 @@ Examples
     [wangdayong@TEST w-snmpwalk]$
 
 
-# w-snmpwalk
