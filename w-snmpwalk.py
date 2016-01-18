@@ -10,6 +10,10 @@
 
     Revision history
     ~~~~~~~~~~~~~~~~
+    2016/01/18
+    updated by Dayong Wang (wandering_997@sina.com)
+    optimize a little bit for the performace.
+
     2015/11/23
     creates by Dayong Wang (wandering_997@sina.com)
 
@@ -30,10 +34,10 @@ import time
 
 
 g_oid = dict()
-g_oid['sysName']                = '1.3.6.1.2.1.1.5' # do not use 1.3.6.1.2.1.1.5.0, pysnmp will raise error
-g_oid['sysDescr']               = '1.3.6.1.2.1.1.1' # do not use 1.3.6.1.2.1.1.1.0, pysnmp will raise error
-g_oid['sysUpTime']              = '1.3.6.1.2.1.1.3' # do not use 1.3.6.1.2.1.1.3.0, pysnmp will raise error
-g_oid['sysLocation']            = '1.3.6.1.2.1.1.6' # do not use 1.3.6.1.2.1.1.6.0, pysnmp will raise error
+g_oid['sysName']                = '1.3.6.1.2.1.1.5'             # do not use 1.3.6.1.2.1.1.5.0, pysnmp will raise error
+g_oid['sysDescr']               = '1.3.6.1.2.1.1.1'             # do not use 1.3.6.1.2.1.1.1.0, pysnmp will raise error
+g_oid['sysUpTime']              = '1.3.6.1.2.1.1.3'             # do not use 1.3.6.1.2.1.1.3.0, pysnmp will raise error
+g_oid['sysLocation']            = '1.3.6.1.2.1.1.6'             # do not use 1.3.6.1.2.1.1.6.0, pysnmp will raise error
 g_oid['ifDescr']                = '1.3.6.1.2.1.2.2.1.2'
 g_oid['ifAlias']                = '1.3.6.1.2.1.31.1.1.1.18'
 g_oid['ifName']                 = '1.3.6.1.2.1.31.1.1.1.1'
@@ -51,6 +55,7 @@ g_oid['ifHCOutMulticastPkts']   = '1.3.6.1.2.1.31.1.1.1.12'
 g_oid['ifHCOutBroadcastPkts']   = '1.3.6.1.2.1.31.1.1.1.13'
 g_oid['ifOutDiscards']          = '1.3.6.1.2.1.2.2.1.19'
 g_oid['ifOutErrors']            = '1.3.6.1.2.1.2.2.1.20'
+
 
 g_oid_valuetype = dict()
 g_oid_valuetype['sysName']              = 'STRING'
@@ -78,7 +83,9 @@ g_oid_valuetype['ifOutErrors']          = 'Counter32'
 
 
 def help_and_exit():
-
+    '''
+    There're still something wrong with pysnmp, so hide pysnmp option in help.
+    '''
     app_name = re.sub('.*/', '', __file__)
 
     print('''
@@ -165,7 +172,7 @@ def w_threading(func_name, list_args, int_max_thread):
 
     # create thread pool
     thread_pool = list()
-    for i in range(0, len(list_args)):
+    for i in xrange(0, len(list_args)):
         th = threading.Thread(target=func_name, args=list_args[i])
         thread_pool.append(th)
 
@@ -178,26 +185,26 @@ def w_threading(func_name, list_args, int_max_thread):
         if thread_count % int_max_thread > 0:
             round_num += 1
         # int_max_thread: How many threads (test) could be executed at one time
-        for j in range(0, round_num):
+        for j in xrange(0, round_num):
             i_begin = j * int_max_thread
             if j == round_num - 1:                 # the last round
                 i_end = thread_count
             else:
                 i_end = i_begin + int_max_thread
             # start threads
-            for i in range(i_begin, i_end):
+            for i in xrange(i_begin, i_end):
                 thread_pool[i].start()
             # terminate threads
-            for i in range(i_begin, i_end):
+            for i in xrange(i_begin, i_end):
                 thread_pool[i].join()
 
     # === thread_count <= int_max_thread ===
     else:
         # start threads
-        for i in range(0, thread_count):
+        for i in xrange(0, thread_count):
             thread_pool[i].start()
         # terminate threads
-        for i in range(0, thread_count):
+        for i in xrange(0, thread_count):
             thread_pool[i].join()
     # ========== Run threads - End ==========
 
@@ -317,36 +324,53 @@ def pysnmp_getnext(snmp_host, snmp_port, snmp_comm, snmp_oid, trans_oid):
 def pysnmp_snmpwalk(snmp_host, snmp_port, snmp_comm, snmp_oid):
     '''
     This is a net-snmp-utils's snmpwalk like function.
+    And the output should be same as 'snmpwalk -Os'.
     '''
+
     dict_out = pysnmp_getnext(snmp_host, snmp_port, snmp_comm, snmp_oid, True)
+
     s_out = ''
     s_oid = snmp_oid_num2label(snmp_oid)
+    s_valuetype = snmp_valuetype(s_oid)
+
+    list_out = list()
+    re_sub = re.sub
+
     for s_key in dict_out:
 
         s_value = dict_out[s_key]
-        s_valuetype = snmp_valuetype(s_oid)
         if s_valuetype == 'Timeticks':
             flt_days = float(s_value) / (86400 * 100)
             s_value = "(%s) %0.2f days" % (s_value, flt_days)
         if s_valuetype == '':
-            s_valuetype = 'UNKNOWN: '
+            s_valuetype = 'UNKNOWN'
         if s_oid == 'ifOperStatus':
             if s_value == '1':
                 s_value = 'up(1)'
             if s_value == '2':
                 s_value = 'down(2)'
-        s_out = "%s%s = %s: %s\n" % (s_out, s_key, s_valuetype, s_value)
+        new_key = re_sub('^.*\.', '', s_key)
+        new_key = "%s.%s" % (s_oid, new_key)
+        s_out = "%s = %s: %s\n" % (new_key, s_valuetype, s_value)
+        list_out.append(s_out)
+
+    list_out.sort()
+    return "".join(list_out).strip()
+    #return s_out.strip()
     '''
     ifDescr.1 = STRING: GigabitEthernet0/1
     ifHCInOctets.1 = Counter64: 5563710
     '''
-    return s_out.strip()
-
 # End of pysnmp_snmpwalk()
 
 
 
 def w_snmpwalk(snmp_ip, snmp_comm = '', snmp_oid = '', snmp_ver = '2c', datadir = '.', pysnmp = False, silent = False, singlefile = False, oldstyle = False):
+
+    re_sub          = re.sub
+    re_search       = re.search
+    os_path_dirname = os.path.dirname
+    os_path_exists  = os.path.exists
 
     # snmp_host - ip[:port]
     if snmp_ip.strip() == '':
@@ -369,7 +393,7 @@ def w_snmpwalk(snmp_ip, snmp_comm = '', snmp_oid = '', snmp_ver = '2c', datadir 
         return False
 
     # snmp_ver
-    if snmp_ver.strip() == '' or re.search('^(1|2c|3)$', snmp_ver) == None:
+    if re_search('^(1|2c|3)$', snmp_ver) == None:
         snmp_ver = '2c'
 
     # datadir
@@ -389,8 +413,9 @@ def w_snmpwalk(snmp_ip, snmp_comm = '', snmp_oid = '', snmp_ver = '2c', datadir 
     if data_out.strip() == '':
         return False
 
-    # Write log to file
     s_time = w_time()
+
+    # Write log to file
     for s_line in data_out.split("\n"):
         '''
         sysUpTimeInstance = Timeticks: (2138271723) 247 days, 11:38:37.23
@@ -402,11 +427,11 @@ def w_snmpwalk(snmp_ip, snmp_comm = '', snmp_oid = '', snmp_ver = '2c', datadir 
         if singlefile:
             s_oid = snmp_oid
         else:
-            s_oid = re.sub(" =.*$", '', s_line)
-            s_oid = re.sub("\.0$", '', s_oid)
+            s_oid = re_sub(" =.*$", '', s_line)
+            s_oid = re_sub("\.0$", '', s_oid)
         # for example: sysUpTimeInstance
         if s_oid != snmp_oid:
-            if re.search("%s[0-9\.]+" % (snmp_oid), s_oid) == None:
+            if re_search("%s[0-9\.]+" % (snmp_oid), s_oid) == None:
                 s_oid = snmp_oid
         if s_oid.strip() == '':
             continue
@@ -415,18 +440,18 @@ def w_snmpwalk(snmp_ip, snmp_comm = '', snmp_oid = '', snmp_ver = '2c', datadir 
         if oldstyle:
             s_data = "%s, %s;\n" % (s_time, s_line)
             output_file = "%s/%s/%s#%s" % (datadir, snmp_host, snmp_host, s_oid)
-            output_file = re.sub('\.0$', '', output_file)
+            output_file = re_sub('\.0$', '', output_file)
         else:
             s_valuetype = snmp_valuetype(snmp_oid)
             if s_valuetype != '':
-                s_data = "%s, %s\n" % (s_time, re.sub("^.*%s: " % (s_valuetype), '', s_line))
+                s_data = "%s, %s\n" % (s_time, re_sub("^.*%s: " % (s_valuetype), '', s_line))
             else:
-                s_data = "%s, %s\n" % (s_time, re.sub("^.* = ([0-9a-zA-Z:]+ )?", '', s_line))
+                s_data = "%s, %s\n" % (s_time, re_sub("^.* = ([0-9a-zA-Z:]+ )?", '', s_line))
             output_file = "%s/%s/%s" % (datadir, snmp_host, s_oid)
 
         # log path
-        output_path = os.path.dirname(output_file)
-        if not os.path.exists(output_path):
+        output_path = os_path_dirname(output_file)
+        if not os_path_exists(output_path):
             try:
                 sys_cmd('mkdir -p %s' % (output_path))
             except:
@@ -510,11 +535,11 @@ if __name__ == '__main__':
             snmp_oidfile = value
         elif op == '--oldstyle':
             oldstyle = True
-        #elif op == '--pysnmp':
-        #    # Dayong:
-        #    # pysnmp has low performance, and I really don't know why 
-        #    from pysnmp.entity.rfc3413.oneliner import cmdgen
-        #    pysnmp = True
+        elif op == '--pysnmp':
+            # Dayong:
+            # pysnmp has low performance, and I really don't know why 
+            from pysnmp.entity.rfc3413.oneliner import cmdgen
+            pysnmp = True
         elif op == '--silent':
             silent = True
         elif op == '--singlefile':
