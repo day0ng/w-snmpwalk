@@ -12,49 +12,50 @@ Wang Dayong (Email: wandering_997@sina.com, http://weibo.com/wandering997)
 Help
 ==============
 
-[root@TEST w-snmpwalk]# ./w-snmpwalk.py
-usage: w-snmpwalk.py [-h] [--ver VER] [--comm COMM] [--port PORT]
-[--datadir DATADIR] [--ip IP] [--ipfile IPFILE]
-[--oid OID] [--oidfile OIDFILE] [--oldstyle] [--pysnmp]
-[--silent] [--singlefile] [--max MAX] [--timeout TIMEOUT]
-[--process]
-
-This is a multi-device snmpwalk program, it works like snmpwalk command of
-net-snmp project. So make sure you have installed snmpwalk before using it.
-
-optional arguments:
--h, --help         show this help message and exit
---ver VER          SNMP version, default is 2c
---comm COMM        SNMP community
---port PORT        SNMP UDP port, default is 161
---datadir DATADIR  The path where arp or mac data is stored, default is current directory
-                   For example:
-                   /var/log/snmp/$(date "+%Y")/$(date "+%Y%m%d")/
---ip IP            ip[:port] list for snmp fetching
---ipfile IPFILE    A filename of ip[:port] list, --ip has higher priority than --ipfile
---oid OID          OID list for snmpwalk
---oidfile OIDFILE  A filename of oid list, --oid has higher priority than --oidfile
---oldstyle         For compatible, use an old format to log.
-                   Old Style:
-                       shell> cat /var/log/snmp/2015/20151123/172.17.54.1/172.17.54.1#ifHCInOctets.1
-                       2015-11-23 12:58:57, ifHCInOctets.1 = Counter64: 2799462542644320;
-                   New Style:
-                       shell> cat /var/log/snmp/2015/20151123/172.17.54.1/ifHCInOctets.1
-                       12:58:57, 2799462542644320
---pysnmp           Use pysnmp module instead of snmpwalk command of net-snmp.
---silent           Silence mode.
---singlefile       If given then write all snmp output of one IP to single file.
---max MAX          The maximum threads/processes could be spread each time, default is 1000.
---timeout TIMEOUT  Time to wait for command executing, default is 5 seconds.
---process          Use multi-process instead of multi-thread.
-
-Example:
-
-./w-snmpwalk.py --comm <YOUR_COMM> --ip 192.168.0.1
-./w-snmpwalk.py --comm <YOUR_COMM> --datadir /var/log/snmp/2016/20160123/ --ipfile ./ip.test --silent
-
-
-[root@TEST w-snmpwalk]#
+    [root@TEST w-snmpwalk]# ./w-snmpwalk.py
+    
+    usage: w-snmpwalk.py [-h] [--ver VER] [--comm COMM] [--port PORT]
+                         [--datadir DATADIR] [--ip IP] [--ipfile IPFILE]
+                         [--oid OID] [--oidfile OIDFILE] [--oldstyle] [--pysnmp]
+                         [--silent] [--singlefile] [--max MAX] [--timeout TIMEOUT]
+                         [--process]
+    
+      This is a multi-device snmpwalk program, it works like snmpwalk command of
+      net-snmp project. So make sure you have installed snmpwalk before using it.
+    
+    optional arguments:
+      -h, --help         show this help message and exit
+      --ver VER          SNMP version, default is 2c
+      --comm COMM        SNMP community
+      --port PORT        SNMP UDP port, default is 161
+      --datadir DATADIR  The path where arp or mac data is stored, default is current directory
+                         For example:
+                         /var/log/snmp/$(date "+%Y")/$(date "+%Y%m%d")/
+      --ip IP            ip[:port] list for snmp fetching
+      --ipfile IPFILE    A filename of ip[:port] list, --ip has higher priority than --ipfile
+      --oid OID          OID list for snmpwalk
+      --oidfile OIDFILE  A filename of oid list, --oid has higher priority than --oidfile
+      --oldstyle         For compatible, use an old format to log.
+                         Old Style:
+                             shell> cat /var/log/snmp/2015/20151123/172.17.54.1/172.17.54.1#ifHCInOctets.1
+                             2015-11-23 12:58:57, ifHCInOctets.1 = Counter64: 2799462542644320;
+                         New Style:
+                             shell> cat /var/log/snmp/2015/20151123/172.17.54.1/ifHCInOctets.1
+                             12:58:57, 2799462542644320
+      --pysnmp           Use pysnmp module instead of snmpwalk command of net-snmp.
+      --silent           Silence mode.
+      --singlefile       If given then write all snmp output of one IP to single file.
+      --max MAX          The maximum threads/processes could be spread each time, default is 1000.
+      --timeout TIMEOUT  Time to wait for command executing, default is 5 seconds.
+      --process          Use multi-process instead of multi-thread.
+    
+    Example:
+    
+      w-snmpwalk/w-snmpwalk.py --comm <YOUR_COMM> --ip 192.168.0.1
+      w-snmpwalk/w-snmpwalk.py --comm <YOUR_COMM> --datadir /var/log/snmp/2016/20160123/ --ipfile ./ip.test --silent
+    
+    
+    [root@TEST w-snmpwalk]#
 
 
 Examples
