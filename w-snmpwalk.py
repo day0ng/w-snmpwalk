@@ -10,6 +10,10 @@
 
     Revision history
     ~~~~~~~~~~~~~~~~
+    2016/01/23
+    updated by Dayong wang (wandering_997@sina.com)
+    replace getopt with argparse
+
     2016/01/18
     updated by Dayong Wang (wandering_997@sina.com)
     optimize a little bit for the performace.
@@ -24,6 +28,7 @@
     $Author: $
 """
 
+import argparse
 import getopt
 import os
 import re
@@ -79,67 +84,6 @@ g_oid_valuetype['ifHCOutMulticastPkts'] = 'Counter64'
 g_oid_valuetype['ifHCOutBroadcastPkts'] = 'Counter64'
 g_oid_valuetype['ifOutDiscards']        = 'Counter32'
 g_oid_valuetype['ifOutErrors']          = 'Counter32'
-
-
-
-def help_and_exit():
-    '''
-    There're still something wrong with pysnmp, so hide pysnmp option in help.
-    '''
-    app_name = re.sub('.*/', '', __file__)
-
-    print('''
-Description:
-
-    This is a multi-device snmpwalk program, it works like snmpwalk command of
-    net-snmp project. So make sure you have installed snmpwalk before using it.
-
-Options:
-
-    --ver <string>          SNMP version, default is 2c
-
-    --comm <string>         SNMP community
-
-    --datadir <path>        The path where arp or mac data is stored, default is current directory
-                            For example:
-                            /var/log/snmp/$(date "+%%Y")/$(date "+%%Y%%m%%d")/
- 
-    --ip <ip[:port],...>    ip[:port] list for snmp fetching
-
-    --ipfile <file_name>    A filename of ip[:port] list, --ip has higher priority than --ipfile
-
-    --oid <oid,...>         OID list for snmpwalk
-
-    --oidfile <file_name>   A filename of oid list, --oid has higher priority than --oidfile
-
-    --oldstyle              For compatible, use an old format to log.
-
-                            Old Style:
-                              shell> cat /var/log/snmp/2015/20151123/172.17.54.1/172.17.54.1#ifHCInOctets.1
-                              2015-11-23 12:58:57, ifHCInOctets.1 = Counter64: 2799462542644320;
-
-                            New Style:
-                              shell> cat /var/log/snmp/2015/20151123/172.17.54.1/ifHCInOctets.1
-                              12:58:57, 2799462542644320
-
-    --silent                Silence mode, will be eanbled while --datadir was given.
-
-    --singlefile            If given then write all snmp output of one IP to single file.
-
-    --thread <num>          The maximum threads could be spread each time, default is 1000.
-
-    --timeout <seconds>     Time to wait for command executing, default is 5 seconds.
-
-Example:
-
-    %s --comm <YOUR_COMM> --ip 192.168.0.1
-    %s --comm <YOUR_COMM> --datadir /var/log/snmp/%s/%s/ --ipfile ./ip.test --silent
-
-''' % (app_name, app_name, w_time('%Y'), w_time('%Y%m%d')))
-
-    sys.exit()
-
-# End of help_and_exit()
 
 
 
@@ -475,88 +419,49 @@ def w_snmpwalk(snmp_ip, snmp_comm = '', snmp_oid = '', snmp_ver = '2c', datadir 
 
 if __name__ == '__main__':
 
-    ip = ''
-    ipfile = ''
-    snmp_comm = ''
-    snmp_port = '161'
-    snmp_oid = ''
-    snmp_oidfile = ''
-    snmp_ver = '2c'
-    datadir = ''
-    thread = 1000
-    timeout = 5
-    silent = False
-    singlefile = False
-    oldstyle = False
-    pysnmp = False
-    file_list = list()
 
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "h",
-                        [   
-                            'ver=',
-                            'comm=',
-                            'datadir=',
-                            'ip=',
-                            'ipfile=',
-                            'oid=',
-                            'oidfile=',
-                            'oldstyle',
-                            'pysnmp',
-                            'silent',
-                            'singlefile',
-                            'thread=',
-                            'timeout=',
-                        ])
-    except:
-        print("Wrong options!")
-        print("Try '-h' to get more information.")
-        sys.exit()
+    p = argparse.ArgumentParser(
+            formatter_class=argparse.RawTextHelpFormatter,
+            description='''
+  This is a multi-device snmpwalk program, it works like snmpwalk command of
+  net-snmp project. So make sure you have installed snmpwalk before using it.
+''',
+            epilog='''
 
-    if len(opts) == 0:
-        help_and_exit()
+Example:
 
-    for op, value in opts:
-        if op == '-h':
-            help_and_exit()
-        elif op == '--ver':
-            snmp_ver = value
-        elif op == '--comm':
-            snmp_comm = value
-        elif op == '--datadir':
-            datadir = value
-        elif op == '--ip':
-            ip = value
-        elif op == '--ipfile':
-            ipfile = value
-        elif op == '--oid':
-            snmp_oid = value
-        elif op == '--oidfile':
-            snmp_oidfile = value
-        elif op == '--oldstyle':
-            oldstyle = True
-        elif op == '--pysnmp':
-            # Dayong:
-            # pysnmp has low performance, and I really don't know why 
-            from pysnmp.entity.rfc3413.oneliner import cmdgen
-            pysnmp = True
-        elif op == '--silent':
-            silent = True
-        elif op == '--singlefile':
-            singlefile = True
-        elif op == '--thread':
-            if value.isalnum():
-                thread = int(value)
-        elif op == '--timeout':
-            try:
-                timeout = int(value)
-            except ValueError:
-                print('Wrong option: --timeout only accepts a float value.')
-                print("Try '-h' to get more information.")
-                sys.exit(1)
-        else:
-            help_and_exit()
+  %s --comm <YOUR_COMM> --ip 192.168.0.1
+  %s --comm <YOUR_COMM> --datadir /var/log/snmp/%s/%s/ --ipfile ./ip.test --silent
 
+                   ''' % (sys.argv[0], sys.argv[0], w_time('%Y'), w_time('%Y%m%d'))
+        )
+
+    p.add_argument("--ver",         type=str,   default="2c",  help="SNMP version, default is 2c")
+    p.add_argument("--comm",        type=str,   default="",    help="SNMP community")
+    p.add_argument("--port",        type=str,   default="161", help="SNMP UDP port, default is 161")
+    p.add_argument("--datadir",     type=str,   default=".",   help='''The path where arp or mac data is stored, default is current directory
+For example:
+/var/log/snmp/$(date "+%%Y")/$(date "+%%Y%%m%%d")/
+''')
+    p.add_argument("--ip",          type=str,   help="ip[:port] list for snmp fetching")
+    p.add_argument("--ipfile",      type=str,   help="A filename of ip[:port] list, --ip has higher priority than --ipfile")
+    p.add_argument("--oid",         type=str,   help="OID list for snmpwalk")
+    p.add_argument("--oidfile",     type=str,   help="A filename of oid list, --oid has higher priority than --oidfile")
+    p.add_argument("--oldstyle",    action="store_true", help='''For compatible, use an old format to log.
+Old Style:
+    shell> cat /var/log/snmp/2015/20151123/172.17.54.1/172.17.54.1#ifHCInOctets.1
+    2015-11-23 12:58:57, ifHCInOctets.1 = Counter64: 2799462542644320;
+New Style:
+    shell> cat /var/log/snmp/2015/20151123/172.17.54.1/ifHCInOctets.1
+    12:58:57, 2799462542644320
+''')
+    p.add_argument("--pysnmp",      action="store_true", help="Use pysnmp module instead of snmpwalk command of net-snmp.")
+    p.add_argument("--silent",      action="store_true", help="Silence mode.")
+    p.add_argument("--singlefile",  action="store_true", help="If given then write all snmp output of one IP to single file.")
+    p.add_argument("--thread",      type=int,   default=1000,  help="The maximum threads could be spread each time, default is 1000.")
+    p.add_argument("--timeout",     type=int,   default=5,     help="Time to wait for command executing, default is 5 seconds.")
+
+    args = p.parse_args()
 
     # func_name
     func_name = w_snmpwalk
@@ -565,42 +470,46 @@ if __name__ == '__main__':
     func_args = list()
 
     # ip
-    if ip != '':
-        list_ip = ip.split(',')
-    elif ipfile != '':
-        if not os.path.exists(ipfile):
-            print('%s does not exist, please specified host with --ip or --ipfile.\n' % (ipfile))
+    if args.ip:
+        list_ip = args.ip.split(',')
+    elif args.ipfile:
+        if not os.path.exists(args.ipfile):
+            print('%s does not exist, please specified host with --ip or --ipfile.\n' % (args.ipfile))
             sys.exit()
-        f_ip = open(ipfile)
+        f_ip = open(args.ipfile)
         list_ip = f_ip.readlines()
         f_ip.close()
     else:
-        print('Please set host with --ip or --ipfile.\n')
+        p.print_help()
         sys.exit()
 
     # snmp_oid
-    if snmp_oid.strip() != '':
-        list_oid = snmp_oid.split(',')
-    elif snmp_oidfile.strip() != '':
-        if not os.path.exists(snmp_oidfile):
-            print('%s does not exist, please set host with --oid or --oidfile.\n' % (snmp_oidfile))
+    if args.oid:
+        list_oid = args.oid.split(',')
+    elif args.oidfile:
+        if not os.path.exists(args.oidfile):
+            print('%s does not exist, please set host with --oid or --oidfile.\n' % (args.oidfile))
             sys.exit()
-        f_oid = open(snmp_oidfile)
+        f_oid = open(args.oidfile)
         list_oid = f_oid.readlines()
         f_oid.close()
     else:
         print('Please set host with --oid or --oidfile.\n')
         sys.exit()
 
+    # pysnmp
+    if args.pysnmp:
+        from pysnmp.entity.rfc3413.oneliner import cmdgen
+
     # Prepare threding
     len_ip  = len(list_ip)
     len_oid = len(list_oid)
     for s_ip in list_ip:
         for s_oid in list_oid:
-            func_args.append([s_ip.strip(), snmp_comm, s_oid.strip(), snmp_ver, datadir, pysnmp, silent, singlefile, oldstyle])
+            func_args.append([s_ip.strip(), args.comm, s_oid.strip(), args.ver, args.datadir, args.pysnmp, args.silent, args.singlefile, args.oldstyle])
 
     # Start multi-threading
-    w_threading(func_name, func_args, thread)
+    w_threading(func_name, func_args, args.thread)
 
     # Exit
     sys.exit()
