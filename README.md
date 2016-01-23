@@ -51,8 +51,8 @@ Help
     
     Example:
     
-      w-snmpwalk/w-snmpwalk.py --comm <YOUR_COMM> --ip 192.168.0.1
-      w-snmpwalk/w-snmpwalk.py --comm <YOUR_COMM> --datadir /var/log/snmp/2016/20160123/ --ipfile ./ip.test --silent
+      w-snmpwalk.py --comm <YOUR_COMM> --ip 192.168.0.1
+      w-snmpwalk.py --comm <YOUR_COMM> --datadir /var/log/snmp/2016/20160123/ --ipfile ./ip.test --silent
     
     
     [root@TEST w-snmpwalk]#
