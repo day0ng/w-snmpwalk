@@ -555,8 +555,6 @@ New Style:
         from pysnmp.entity.rfc3413.oneliner import cmdgen
 
     # Prepare threding
-    len_ip  = len(list_ip)
-    len_oid = len(list_oid)
     for s_ip in list_ip:
         for s_oid in list_oid:
             func_args.append([s_ip.strip(), args.comm, s_oid.strip(), args.ver, args.datadir, args.pysnmp, args.silent, args.singlefile, args.oldstyle])
