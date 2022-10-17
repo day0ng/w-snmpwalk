@@ -11,7 +11,7 @@
     Revision history
     ~~~~~~~~~~~~~~~~
     2016/01/23
-    updated by Dayong wang (wandering_997@sina.com)
+    updated by Dayong Wang (wandering_997@sina.com)
     replace getopt with argparse
 
     2016/01/18
@@ -491,7 +491,7 @@ Example:
     p.add_argument("--ver",         type=str,   default="2c",  help="SNMP version, default is 2c")
     p.add_argument("--comm",        type=str,   default="",    help="SNMP community")
     p.add_argument("--port",        type=str,   default="161", help="SNMP UDP port, default is 161")
-    p.add_argument("--datadir",     type=str,   default=".",   help='''The path where arp or mac data is stored, default is current directory
+    p.add_argument("--datadir",     type=str,   default=".",   help='''The path where snmp data is stored, default is current directory.
 For example:
 /var/log/snmp/$(date "+%%Y")/$(date "+%%Y%%m%%d")/
 ''')
@@ -512,7 +512,7 @@ New Style:
     p.add_argument("--singlefile",  action="store_true", help="If given then write all snmp output of one IP to single file.")
     p.add_argument("--max",         type=int,   default=1000,  help="The maximum threads/processes could be spread each time, default is 1000.")
     p.add_argument("--timeout",     type=int,   default=5,     help="Time to wait for command executing, default is 5 seconds.")
-    p.add_argument("--process",   action="store_true", help="Use multi-process instead of multi-thread.")
+    p.add_argument("--process",     action="store_true", help="Use multi-process instead of multi-thread.")
 
     args = p.parse_args()
 
